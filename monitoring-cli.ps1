@@ -50,8 +50,20 @@ function Do-Logout {
 
 function List-Groups {
     if (-not (Require-Auth)) { Press-Enter; return }
-    Print-Header "Groupes d'applications"
-    Pretty-Json (Api-Get "/api/v1/application-groups")
+    Print-Header "GROUPES"
+    $response = Api-Get "/api/v1/application-groups"
+    try {
+        $data = $response | ConvertFrom-Json
+        $items = if ($data.data -is [array]) { $data.data } else { @($data.data) }
+        foreach ($item in $items) {
+            Write-Host "ID   : $($item.id)"
+            Write-Host "Nom  : $($item.name)"
+            Write-Host "Desc : $($item.description)"
+            Write-Host ""
+        }
+    } catch {
+        Pretty-Json $response
+    }
     Press-Enter
 }
 
@@ -103,8 +115,21 @@ function Delete-Group {
 
 function List-Applications {
     if (-not (Require-Auth)) { Press-Enter; return }
-    Print-Header "Applications"
-    Pretty-Json (Api-Get "/api/v1/applications")
+    Print-Header "APPLICATIONS"
+    $response = Api-Get "/api/v1/applications"
+    try {
+        $data = $response | ConvertFrom-Json
+        $items = if ($data.data -is [array]) { $data.data } else { @($data.data) }
+        foreach ($item in $items) {
+            Write-Host "ID   : $($item.id)"
+            Write-Host "Nom  : $($item.name)"
+            Write-Host "URL  : $($item.url)"
+            Write-Host "Desc : $($item.description)"
+            Write-Host ""
+        }
+    } catch {
+        Pretty-Json $response
+    }
     Press-Enter
 }
 
@@ -163,8 +188,22 @@ function Delete-Application {
 
 function List-Incidents {
     if (-not (Require-Auth)) { Press-Enter; return }
-    Print-Header "Incidents"
-    Pretty-Json (Api-Get "/api/v1/incidents")
+    Print-Header "INCIDENTS"
+    $response = Api-Get "/api/v1/incidents"
+    try {
+        $data = $response | ConvertFrom-Json
+        $items = if ($data.data -is [array]) { $data.data } else { @($data.data) }
+        foreach ($item in $items) {
+            Write-Host "ID        : $($item.id)"
+            Write-Host "Titre     : $($item.title)"
+            Write-Host "Statut    : $($item.status)"
+            Write-Host "Severite  : $($item.severity)"
+            Write-Host "Application : $($item.application.name)"
+            Write-Host ""
+        }
+    } catch {
+        Pretty-Json $response
+    }
     Press-Enter
 }
 
@@ -283,79 +322,7 @@ function Resolve-Incident {
 
 # ── SUBMENUS ──────────────────────────────────────────────────────────────────
 
-function Menu-Groups {
-    while ($true) {
-        Clear-Host
-        Print-Header "Gerer les groupes d'applications"
-        Write-Host "  1) Lister tous les groupes"
-        Write-Host "  2) Afficher un groupe par ID"
-        Write-Host "  3) Creer un nouveau groupe"
-        Write-Host "  4) Modifier un groupe"
-        Write-Host "  5) Supprimer un groupe"
-        Write-Host "  0) Retour au menu principal"
-        Write-Host ""
-        $c = Read-Host "Choisir"
-        switch ($c) {
-            "1" { Clear-Host; List-Groups }
-            "2" { Clear-Host; View-Group }
-            "3" { Clear-Host; Create-Group }
-            "4" { Clear-Host; Edit-Group }
-            "5" { Clear-Host; Delete-Group }
-            "0" { return }
-            default { Print-Warn "Option invalide."; Start-Sleep -Seconds 1 }
-        }
-    }
-}
-
-function Menu-Applications {
-    while ($true) {
-        Clear-Host
-        Print-Header "Gerer les applications"
-        Write-Host "  1) Lister toutes les applications"
-        Write-Host "  2) Afficher une application par ID"
-        Write-Host "  3) Creer une nouvelle application"
-        Write-Host "  4) Modifier une application"
-        Write-Host "  5) Supprimer une application"
-        Write-Host "  0) Retour au menu principal"
-        Write-Host ""
-        $c = Read-Host "Choisir"
-        switch ($c) {
-            "1" { Clear-Host; List-Applications }
-            "2" { Clear-Host; View-Application }
-            "3" { Clear-Host; Create-Application }
-            "4" { Clear-Host; Edit-Application }
-            "5" { Clear-Host; Delete-Application }
-            "0" { return }
-            default { Print-Warn "Option invalide."; Start-Sleep -Seconds 1 }
-        }
-    }
-}
-
-function Menu-Incidents {
-    while ($true) {
-        Clear-Host
-        Print-Header "Gerer les incidents"
-        Write-Host "  1) Lister tous les incidents"
-        Write-Host "  2) Afficher un incident par ID"
-        Write-Host "  3) Creer un nouvel incident"
-        Write-Host "  4) Modifier un incident"
-        Write-Host "  5) Supprimer un incident"
-        Write-Host "  6) Resoudre un incident"
-        Write-Host "  0) Retour au menu principal"
-        Write-Host ""
-        $c = Read-Host "Choisir"
-        switch ($c) {
-            "1" { Clear-Host; List-Incidents }
-            "2" { Clear-Host; View-Incident }
-            "3" { Clear-Host; Create-Incident }
-            "4" { Clear-Host; Edit-Incident }
-            "5" { Clear-Host; Delete-Incident }
-            "6" { Clear-Host; Resolve-Incident }
-            "0" { return }
-            default { Print-Warn "Option invalide."; Start-Sleep -Seconds 1 }
-        }
-    }
-}
+# Removed - operations now in main menu
 
 # ── MAIN MENU ─────────────────────────────────────────────────────────────────
 
@@ -373,21 +340,52 @@ function Main-Menu {
         }
         Write-Host ""
         Write-Host "  1) Connexion"
-        Write-Host "  2) Gerer les groupes"
-        Write-Host "  3) Gerer les applications"
-        Write-Host "  4) Gerer les incidents"
-        Write-Host "  5) Deconnexion"
-        Write-Host "  6) Quitter"
         Write-Host ""
-        $c = Read-Host "Choisissez une option"
+        Write-Host "------- GROUPES -------"
+        Write-Host "  2) Liste groupes"
+        Write-Host "  3) Voir groupe"
+        Write-Host "  4) Creer groupe"
+        Write-Host "  5) Modifier groupe"
+        Write-Host "  6) Supprimer groupe"
+        Write-Host ""
+        Write-Host "------- APPLICATIONS -------"
+        Write-Host "  7) Liste applications"
+        Write-Host "  8) Voir application"
+        Write-Host "  9) Creer application"
+        Write-Host "  10) Modifier application"
+        Write-Host "  11) Supprimer application"
+        Write-Host ""
+        Write-Host "------- INCIDENTS -------"
+        Write-Host "  12) Liste incidents"
+        Write-Host "  13) Voir incident"
+        Write-Host "  14) Creer incident"
+        Write-Host "  15) Modifier incident"
+        Write-Host "  16) Supprimer incident"
+        Write-Host "  17) Resoudre incident"
+        Write-Host ""
+        Write-Host "  0) Quitter"
+        Write-Host ""
+        $c = Read-Host "Choisir"
         switch ($c) {
-            "1" { Clear-Host; Do-Login }
-            "2" { Menu-Groups }
-            "3" { Menu-Applications }
-            "4" { Menu-Incidents }
-            "5" { Clear-Host; Do-Logout }
-            "6" { Write-Host "Au revoir!" -ForegroundColor Green; exit 0 }
-            default { Print-Warn "Option invalide. Veuillez choisir 1-6."; Start-Sleep -Seconds 1 }
+            "1"  { Clear-Host; Do-Login }
+            "2"  { Clear-Host; List-Groups }
+            "3"  { Clear-Host; View-Group }
+            "4"  { Clear-Host; Create-Group }
+            "5"  { Clear-Host; Edit-Group }
+            "6"  { Clear-Host; Delete-Group }
+            "7"  { Clear-Host; List-Applications }
+            "8"  { Clear-Host; View-Application }
+            "9"  { Clear-Host; Create-Application }
+            "10" { Clear-Host; Edit-Application }
+            "11" { Clear-Host; Delete-Application }
+            "12" { Clear-Host; List-Incidents }
+            "13" { Clear-Host; View-Incident }
+            "14" { Clear-Host; Create-Incident }
+            "15" { Clear-Host; Edit-Incident }
+            "16" { Clear-Host; Delete-Incident }
+            "17" { Clear-Host; Resolve-Incident }
+            "0"  { Write-Host "Au revoir!" -ForegroundColor Green; exit 0 }
+            default { Print-Warn "Option invalide. Choisir 0-17."; Start-Sleep -Seconds 1 }
         }
     }
 }
