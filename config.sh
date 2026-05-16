@@ -15,16 +15,16 @@ BASE_URL="https://monitoring-app.on-forge.com"
 AUTH_TOKEN=""
 
 # Helper: print colored output
-print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-print_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
-print_warn()    { echo -e "${YELLOW}[WARN]${NC} $1"; }
+print_success() { echo -e "${GREEN}[SUCCÈS]${NC} $1"; }
+print_error()   { echo -e "${RED}[ERREUR]${NC} $1"; }
+print_warn()    { echo -e "${YELLOW}[AVERTISSEMENT]${NC} $1"; }
 print_info()    { echo -e "${CYAN}[INFO]${NC} $1"; }
 print_header()  { echo -e "\n${BOLD}${BLUE}=== $1 ===${NC}\n"; }
 
 # Helper: check if token is set
 require_auth() {
     if [ -z "$AUTH_TOKEN" ]; then
-        print_error "Not logged in. Please login first (option 1)."
+        print_error "Non connecté. Veuillez vous connecter d'abord (option 1)."
         return 1
     fi
     return 0
@@ -82,7 +82,7 @@ validate_not_empty() {
     local value="$1"
     local field="$2"
     if [ -z "$value" ]; then
-        print_error "$field cannot be empty."
+        print_error "$field ne peut pas être vide."
         return 1
     fi
     return 0
@@ -92,7 +92,7 @@ validate_not_empty() {
 validate_id() {
     local id="$1"
     if ! [[ "$id" =~ ^[0-9]+$ ]]; then
-        print_error "ID must be a number."
+        print_error "L'ID doit être un nombre."
         return 1
     fi
     return 0
@@ -100,18 +100,18 @@ validate_id() {
 
 # Helper: confirm destructive action
 confirm_action() {
-    local message="${1:-Are you sure?}"
-    echo -e "${YELLOW}$message (y/n): ${NC}\c"
+    local message="${1:-Êtes-vous sûr(e)?}"
+    echo -e "${YELLOW}$message (o/n): ${NC}\c"
     read -r answer
     case "$answer" in
-        [Yy]|[Yy][Ee][Ss]) return 0 ;;
-        *) print_warn "Operation cancelled."; return 1 ;;
+        [Oo]|[Oo][Uu][Ii]) return 0 ;;
+        *) print_warn "Opération annulée."; return 1 ;;
     esac
 }
 
 # Helper: press any key to continue
 press_enter() {
-    echo -e "\n${CYAN}Press Enter to continue...${NC}"
+    echo -e "\n${CYAN}Appuyez sur Entrée pour continuer...${NC}"
     read -r
 }
 
@@ -120,7 +120,7 @@ check_response() {
     local response="$1"
     # Try to extract common error fields
     if echo "$response" | grep -q '"error"'; then
-        print_error "API returned an error:"
+        print_error "L'API a renvoyé une erreur:"
         pretty_json "$response"
         return 1
     fi

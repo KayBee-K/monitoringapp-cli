@@ -9,12 +9,12 @@ source "$SCRIPT_DIR/config.sh"
 # ─────────────────────────────────────────
 
 do_login() {
-    print_header "Login"
-    read -rp "Email: " email
-    read -rsp "Password: " password; echo
+    print_header "Connexion"
+    read -rp "E-mail: " email
+    read -rsp "Mot de passe: " password; echo
 
-    validate_not_empty "$email" "Email" || return 1
-    validate_not_empty "$password" "Password" || return 1
+    validate_not_empty "$email" "E-mail" || return 1
+    validate_not_empty "$password" "Mot de passe" || return 1
 
     local response
     response=$(curl -s -X POST "$BASE_URL/api/v1/auth/login" \
@@ -27,9 +27,9 @@ do_login() {
 
     if [ -n "$token" ]; then
         AUTH_TOKEN="$token"
-        print_success "Logged in successfully!"
+        print_success "Connecté avec succès!"
     else
-        print_error "Login failed. Response:"
+        print_error "Échec de la connexion. Réponse:"
         pretty_json "$response"
     fi
     press_enter
@@ -37,7 +37,7 @@ do_login() {
 
 do_logout() {
     AUTH_TOKEN=""
-    print_success "Logged out successfully."
+    print_success "Déconnecté avec succès."
     press_enter
 }
 
@@ -47,7 +47,7 @@ do_logout() {
 
 list_groups() {
     require_auth || return
-    print_header "Application Groups"
+    print_header "Groupes d'applications"
     local response
     response=$(api_get "/api/v1/application-groups")
     pretty_json "$response"
@@ -56,8 +56,8 @@ list_groups() {
 
 view_group() {
     require_auth || return
-    print_header "View Application Group"
-    read -rp "Group ID: " id
+    print_header "Afficher le groupe d'application"
+    read -rp "ID du groupe: " id
     validate_id "$id" || return 1
     local response
     response=$(api_get "/api/v1/application-groups/$id")
@@ -67,10 +67,10 @@ view_group() {
 
 create_group() {
     require_auth || return
-    print_header "Create Application Group"
-    read -rp "Name: " name
+    print_header "Créer un groupe d'application"
+    read -rp "Nom: " name
     read -rp "Description: " description
-    validate_not_empty "$name" "Name" || return 1
+    validate_not_empty "$name" "Nom" || return 1
     local data="{\"name\":\"$name\",\"description\":\"$description\"}"
     local response
     response=$(api_post "/api/v1/application-groups" "$data")
@@ -80,12 +80,12 @@ create_group() {
 
 edit_group() {
     require_auth || return
-    print_header "Edit Application Group"
-    read -rp "Group ID: " id
+    print_header "Modifier le groupe d'application"
+    read -rp "ID du groupe: " id
     validate_id "$id" || return 1
-    read -rp "New Name: " name
-    read -rp "New Description: " description
-    validate_not_empty "$name" "Name" || return 1
+    read -rp "Nouveau nom: " name
+    read -rp "Nouvelle description: " description
+    validate_not_empty "$name" "Nom" || return 1
     local data="{\"name\":\"$name\",\"description\":\"$description\"}"
     local response
     response=$(api_put "/api/v1/application-groups/$id" "$data")
@@ -95,14 +95,14 @@ edit_group() {
 
 delete_group() {
     require_auth || return
-    print_header "Delete Application Group"
-    read -rp "Group ID to delete: " id
+    print_header "Supprimer le groupe d'application"
+    read -rp "ID du groupe à supprimer: " id
     validate_id "$id" || return 1
-    confirm_action "Delete group $id?" || return
+    confirm_action "Supprimer le groupe $id?" || return
     local response
     response=$(api_delete "/api/v1/application-groups/$id")
     pretty_json "$response"
-    print_success "Delete request sent."
+    print_success "Demande de suppression envoyée."
     press_enter
 }
 
@@ -121,8 +121,8 @@ list_applications() {
 
 view_application() {
     require_auth || return
-    print_header "View Application"
-    read -rp "Application ID: " id
+    print_header "Afficher l'application"
+    read -rp "ID de l'application: " id
     validate_id "$id" || return 1
     local response
     response=$(api_get "/api/v1/applications/$id")
@@ -132,11 +132,11 @@ view_application() {
 
 create_application() {
     require_auth || return
-    print_header "Create Application"
-    read -rp "Name: " name
+    print_header "Créer une application"
+    read -rp "Nom: " name
     read -rp "URL: " url
     read -rp "Description: " description
-    validate_not_empty "$name" "Name" || return 1
+    validate_not_empty "$name" "Nom" || return 1
     validate_not_empty "$url" "URL" || return 1
     local data="{\"name\":\"$name\",\"url\":\"$url\",\"description\":\"$description\"}"
     local response
@@ -147,13 +147,13 @@ create_application() {
 
 edit_application() {
     require_auth || return
-    print_header "Edit Application"
-    read -rp "Application ID: " id
+    print_header "Modifier l'application"
+    read -rp "ID de l'application: " id
     validate_id "$id" || return 1
-    read -rp "Name: " name
+    read -rp "Nom: " name
     read -rp "URL: " url
     read -rp "Description: " description
-    validate_not_empty "$name" "Name" || return 1
+    validate_not_empty "$name" "Nom" || return 1
     local data="{\"name\":\"$name\",\"url\":\"$url\",\"description\":\"$description\"}"
     local response
     response=$(api_put "/api/v1/applications/$id" "$data")
@@ -163,14 +163,14 @@ edit_application() {
 
 delete_application() {
     require_auth || return
-    print_header "Delete Application"
-    read -rp "Application ID to delete: " id
+    print_header "Supprimer l'application"
+    read -rp "ID de l'application à supprimer: " id
     validate_id "$id" || return 1
-    confirm_action "Delete application $id?" || return
+    confirm_action "Supprimer l'application $id?" || return
     local response
     response=$(api_delete "/api/v1/applications/$id")
     pretty_json "$response"
-    print_success "Delete request sent."
+    print_success "Demande de suppression envoyée."
     press_enter
 }
 
@@ -189,8 +189,8 @@ list_incidents() {
 
 view_incident() {
     require_auth || return
-    print_header "View Incident"
-    read -rp "Incident ID: " id
+    print_header "Afficher l'incident"
+    read -rp "ID de l'incident: " id
     validate_id "$id" || return 1
     local response
     response=$(api_get "/api/v1/incidents/$id")
@@ -200,13 +200,13 @@ view_incident() {
 
 create_incident() {
     require_auth || return
-    print_header "Create Incident"
-    read -rp "Title: " title
+    print_header "Créer un incident"
+    read -rp "Titre: " title
     read -rp "Description: " description
-    read -rp "Application ID: " app_id
-    read -rp "Severity (low/medium/high/critical): " severity
-    validate_not_empty "$title" "Title" || return 1
-    validate_not_empty "$app_id" "Application ID" || return 1
+    read -rp "ID de l'application: " app_id
+    read -rp "Sévérité (faible/moyen/élevé/critique): " severity
+    validate_not_empty "$title" "Titre" || return 1
+    validate_not_empty "$app_id" "ID de l'application" || return 1
     local data="{\"title\":\"$title\",\"description\":\"$description\",\"application_id\":$app_id,\"severity\":\"$severity\"}"
     local response
     response=$(api_post "/api/v1/incidents" "$data")
@@ -216,14 +216,14 @@ create_incident() {
 
 edit_incident() {
     require_auth || return
-    print_header "Edit Incident"
-    read -rp "Incident ID: " id
+    print_header "Modifier l'incident"
+    read -rp "ID de l'incident: " id
     validate_id "$id" || return 1
-    read -rp "Title: " title
+    read -rp "Titre: " title
     read -rp "Description: " description
-    read -rp "Status (open/investigating/resolved): " status
-    read -rp "Severity (low/medium/high/critical): " severity
-    validate_not_empty "$title" "Title" || return 1
+    read -rp "Statut (ouvert/en investigation/résolu): " status
+    read -rp "Sévérité (faible/moyen/élevé/critique): " severity
+    validate_not_empty "$title" "Titre" || return 1
     local data="{\"title\":\"$title\",\"description\":\"$description\",\"status\":\"$status\",\"severity\":\"$severity\"}"
     local response
     response=$(api_put "/api/v1/incidents/$id" "$data")
@@ -233,27 +233,27 @@ edit_incident() {
 
 delete_incident() {
     require_auth || return
-    print_header "Delete Incident"
-    read -rp "Incident ID to delete: " id
+    print_header "Supprimer l'incident"
+    read -rp "ID de l'incident à supprimer: " id
     validate_id "$id" || return 1
-    confirm_action "Delete incident $id?" || return
+    confirm_action "Supprimer l'incident $id?" || return
     local response
     response=$(api_delete "/api/v1/incidents/$id")
     pretty_json "$response"
-    print_success "Delete request sent."
+    print_success "Demande de suppression envoyée."
     press_enter
 }
 
 resolve_incident() {
     require_auth || return
-    print_header "Resolve Incident"
-    read -rp "Incident ID to resolve: " id
+    print_header "Résoudre l'incident"
+    read -rp "ID de l'incident à résoudre: " id
     validate_id "$id" || return 1
-    confirm_action "Resolve incident $id?" || return
+    confirm_action "Résoudre l'incident $id?" || return
     local response
     response=$(api_put "/api/v1/incidents/$id/resolve" "{}")
     pretty_json "$response"
-    print_success "Resolve request sent."
+    print_success "Demande de résolution envoyée."
     press_enter
 }
 
@@ -264,15 +264,15 @@ resolve_incident() {
 menu_groups() {
     while true; do
         clear
-        print_header "Manage Application Groups"
-        echo "  1) List all groups"
-        echo "  2) View group by ID"
-        echo "  3) Create new group"
-        echo "  4) Edit group"
-        echo "  5) Delete group"
-        echo "  0) Back to main menu"
+        print_header "Gérer les groupes d'applications"
+        echo "  1) Lister tous les groupes"
+        echo "  2) Afficher le groupe par ID"
+        echo "  3) Créer un nouveau groupe"
+        echo "  4) Modifier le groupe"
+        echo "  5) Supprimer le groupe"
+        echo "  0) Retour au menu principal"
         echo ""
-        read -rp "Choose: " choice
+        read -rp "Choisir: " choice
         case "$choice" in
             1) clear; list_groups ;;
             2) clear; view_group ;;
@@ -280,7 +280,7 @@ menu_groups() {
             4) clear; edit_group ;;
             5) clear; delete_group ;;
             0) return ;;
-            *) print_warn "Invalid option" ; sleep 1 ;;
+            *) print_warn "Option invalide" ; sleep 1 ;;
         esac
     done
 }
@@ -288,15 +288,15 @@ menu_groups() {
 menu_applications() {
     while true; do
         clear
-        print_header "Manage Applications"
-        echo "  1) List all applications"
-        echo "  2) View application by ID"
-        echo "  3) Create new application"
-        echo "  4) Edit application"
-        echo "  5) Delete application"
-        echo "  0) Back to main menu"
+        print_header "Gérer les applications"
+        echo "  1) Lister toutes les applications"
+        echo "  2) Afficher l'application par ID"
+        echo "  3) Créer une nouvelle application"
+        echo "  4) Modifier l'application"
+        echo "  5) Supprimer l'application"
+        echo "  0) Retour au menu principal"
         echo ""
-        read -rp "Choose: " choice
+        read -rp "Choisir: " choice
         case "$choice" in
             1) clear; list_applications ;;
             2) clear; view_application ;;
@@ -304,7 +304,7 @@ menu_applications() {
             4) clear; edit_application ;;
             5) clear; delete_application ;;
             0) return ;;
-            *) print_warn "Invalid option" ; sleep 1 ;;
+            *) print_warn "Option invalide" ; sleep 1 ;;
         esac
     done
 }
@@ -312,16 +312,16 @@ menu_applications() {
 menu_incidents() {
     while true; do
         clear
-        print_header "Manage Incidents"
-        echo "  1) List all incidents"
-        echo "  2) View incident by ID"
-        echo "  3) Create new incident"
-        echo "  4) Edit incident"
-        echo "  5) Delete incident"
-        echo "  6) Resolve incident"
-        echo "  0) Back to main menu"
+        print_header "Gérer les incidents"
+        echo "  1) Lister tous les incidents"
+        echo "  2) Afficher l'incident par ID"
+        echo "  3) Créer un nouvel incident"
+        echo "  4) Modifier l'incident"
+        echo "  5) Supprimer l'incident"
+        echo "  6) Résoudre l'incident"
+        echo "  0) Retour au menu principal"
         echo ""
-        read -rp "Choose: " choice
+        read -rp "Choisir: " choice
         case "$choice" in
             1) clear; list_incidents ;;
             2) clear; view_incident ;;
@@ -330,42 +330,42 @@ menu_incidents() {
             5) clear; delete_incident ;;
             6) clear; resolve_incident ;;
             0) return ;;
-            *) print_warn "Invalid option" ; sleep 1 ;;
+            *) print_warn "Option invalide" ; sleep 1 ;;
         esac
     done
 }
 
 main_menu() {
-    trap 'echo -e "\n${YELLOW}Exiting...${NC}"; exit 0' INT
+    trap 'echo -e "\n${YELLOW}Sortie...${NC}"; exit 0' INT
     while true; do
         clear
         echo -e "${BOLD}${BLUE}"
         echo "╔══════════════════════════════════════╗"
-        echo "║      MonitoringApp CLI Dashboard      ║"
+        echo "║     Tableau de bord CLI MonitoringApp ║"
         echo "╚══════════════════════════════════════╝"
         echo -e "${NC}"
         if [ -n "$AUTH_TOKEN" ]; then
-            echo -e "  Status: ${GREEN}● Logged In${NC}"
+            echo -e "  Statut: ${GREEN}● Connecté${NC}"
         else
-            echo -e "  Status: ${RED}● Not Logged In${NC}"
+            echo -e "  Statut: ${RED}● Non connecté${NC}"
         fi
         echo ""
-        echo "  1) Login"
-        echo "  2) Manage Groups"
-        echo "  3) Manage Applications"
-        echo "  4) Manage Incidents"
-        echo "  5) Logout"
-        echo "  6) Exit"
+        echo "  1) Connexion"
+        echo "  2) Gérer les groupes"
+        echo "  3) Gérer les applications"
+        echo "  4) Gérer les incidents"
+        echo "  5) Déconnexion"
+        echo "  6) Quitter"
         echo ""
-        read -rp "Choose an option: " choice
+        read -rp "Choisissez une option: " choice
         case "$choice" in
             1) clear; do_login ;;
             2) menu_groups ;;
             3) menu_applications ;;
             4) menu_incidents ;;
             5) clear; do_logout ;;
-            6) echo -e "${GREEN}Goodbye!${NC}"; exit 0 ;;
-            *) print_warn "Invalid option. Please choose 1-6."; sleep 1 ;;
+            6) echo -e "${GREEN}Au revoir!${NC}"; exit 0 ;;
+            *) print_warn "Option invalide. Veuillez choisir 1-6."; sleep 1 ;;
         esac
     done
 }
