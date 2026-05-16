@@ -88,11 +88,12 @@ validate_not_empty() {
     return 0
 }
 
-# Helper: validate numeric ID
+# Helper: validate ID (numeric or UUID format)
 validate_id() {
     local id="$1"
-    if ! [[ "$id" =~ ^[0-9]+$ ]]; then
-        print_error "L'ID doit être un nombre."
+    # Accept both numeric IDs and UUID format (with hyphens and hex characters)
+    if ! [[ "$id" =~ ^[0-9a-fA-F\-]+$ ]] || [ ${#id} -lt 1 ]; then
+        print_error "L'ID doit être un nombre ou un UUID valide."
         return 1
     fi
     return 0
