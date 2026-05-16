@@ -133,12 +133,14 @@ view_application() {
 create_application() {
     require_auth || return
     print_header "Créer une application"
+    read -rp "ID du groupe d'application: " group_id
+    validate_id "$group_id" || return 1
     read -rp "Nom: " name
     read -rp "URL: " url
     read -rp "Description: " description
     validate_not_empty "$name" "Nom" || return 1
     validate_not_empty "$url" "URL" || return 1
-    local data="{\"name\":\"$name\",\"url\":\"$url\",\"description\":\"$description\"}"
+    local data="{\"name\":\"$name\",\"url\":\"$url\",\"description\":\"$description\",\"application_group_id\":\"$group_id\",\"monitoring_enabled\":true}"
     local response
     response=$(api_post "/api/v1/applications" "$data")
     pretty_json "$response"
@@ -150,11 +152,13 @@ edit_application() {
     print_header "Modifier l'application"
     read -rp "ID de l'application: " id
     validate_id "$id" || return 1
+    read -rp "ID du groupe d'application: " group_id
+    validate_id "$group_id" || return 1
     read -rp "Nom: " name
     read -rp "URL: " url
     read -rp "Description: " description
     validate_not_empty "$name" "Nom" || return 1
-    local data="{\"name\":\"$name\",\"url\":\"$url\",\"description\":\"$description\"}"
+    local data="{\"name\":\"$name\",\"url\":\"$url\",\"description\":\"$description\",\"application_group_id\":\"$group_id\",\"monitoring_enabled\":true}"
     local response
     response=$(api_put "/api/v1/applications/$id" "$data")
     pretty_json "$response"
