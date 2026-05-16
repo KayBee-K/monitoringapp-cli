@@ -1,6 +1,10 @@
 # CLI MonitoringApp
 
-Un CLI Bash entièrement interactif et piloté par menu pour l'**API REST MonitoringApp**. Gérez les groupes d'applications, les applications et les incidents directement depuis votre terminal.
+Un CLI entièrement interactif et piloté par menu pour l'**API REST MonitoringApp**. Gérez les groupes d'applications, les applications et les incidents directement depuis votre terminal.
+
+**Disponible en deux versions:**
+- **Bash** (`monitoring-cli.sh`) — pour Linux, macOS et WSL
+- **PowerShell** (`monitoring-cli.ps1`) — pour Windows PowerShell 5.1+
 
 ---
 
@@ -18,11 +22,20 @@ Le CLI maintient votre jeton de session en mémoire pendant la durée de la sess
 
 ## Prérequis
 
+### Version Bash
+
 | Exigence | Version               | Remarques                                                 |
 | -------- | --------------------- | --------------------------------------------------------- |
 | Bash     | 4.0+                  | Requis pour `read -r`, les tableaux et `[[ ]]`            |
 | curl     | Toute version récente | Utilisé pour toutes les requêtes HTTP                     |
 | python3  | 3.x (optionnel)       | Utilisé pour le formatage JSON; revient à la sortie brute |
+
+### Version PowerShell
+
+| Exigence  | Version | Remarques                                                                      |
+| --------- | ------- | ------------------------------------------------------------------------------ |
+| PowerShell | 5.1+   | Inclus nativement dans Windows 10+ et Windows Server 2016+                    |
+| (aucun)   | —       | `Invoke-WebRequest` et `ConvertFrom-Json` sont des cmdlets PowerShell natifs |
 
 ### Vérifier les prérequis
 
@@ -53,6 +66,8 @@ chmod +x monitoring-cli.sh
 
 ### 3. Exécuter le CLI
 
+**Bash (Linux/macOS/WSL):**
+
 ```bash
 ./monitoring-cli.sh
 ```
@@ -62,6 +77,23 @@ Ou via bash explicitement:
 ```bash
 bash monitoring-cli.sh
 ```
+
+**PowerShell (Windows):**
+
+Ouvrez PowerShell et naviguez vers le répertoire du projet:
+
+```powershell
+cd D:\Workspace\monitoringapp-cli
+powershell -ExecutionPolicy Bypass -File .\monitoring-cli.ps1
+```
+
+Ou si PowerShell est déjà ouvert:
+
+```powershell
+& .\monitoring-cli.ps1
+```
+
+> **Remarque:** La première commande contourne temporairement la politique d'exécution pour ce script uniquement. Elle ne change pas les paramètres système.
 
 ---
 
@@ -278,11 +310,19 @@ Toutes les demandes sont envoyées à:
 https://monitoring-app.on-forge.com
 ```
 
-Ceci est configuré dans `config.sh` sous la variable `BASE_URL`. Pour pointer le CLI vers un environnement différent (p. ex. staging), modifiez cette variable:
+**Pour Bash:** Ceci est configuré dans `config.sh` sous la variable `BASE_URL`:
 
 ```bash
 BASE_URL="https://staging.monitoring-app.on-forge.com"
 ```
+
+**Pour PowerShell:** Ceci est configuré dans `config.ps1` sous la variable `$script:BASE_URL`:
+
+```powershell
+$script:BASE_URL = "https://staging.monitoring-app.on-forge.com"
+```
+
+Pour pointer le CLI vers un environnement différent (p. ex. staging), modifiez ces variables.
 
 ---
 
@@ -290,8 +330,10 @@ BASE_URL="https://staging.monitoring-app.on-forge.com"
 
 ```
 monitoringapp-cli/
-├── monitoring-cli.sh   # Exécutable principal — exécutez ceci
-├── config.sh           # Aides partagées, couleurs, fonctions API
+├── monitoring-cli.sh   # Version Bash — exécutez ceci sur Linux/macOS
+├── config.sh           # Aides Bash partagées, couleurs, fonctions API
+├── monitoring-cli.ps1  # Version PowerShell — exécutez ceci sur Windows
+├── config.ps1          # Aides PowerShell partagées, couleurs, fonctions API
 ├── .gitignore          # Exclut les identifiants et les journaux
 └── README.md           # Ce fichier
 ```
@@ -345,6 +387,44 @@ Assurez-vous que vous utilisez Bash 4+. macOS est fourni avec Bash 3.2 par défa
 brew install bash
 /usr/local/bin/bash monitoring-cli.sh
 ```
+
+---
+
+## Dépannage PowerShell
+
+### `"PowerShell" is not recognized as an internal or external command`
+
+PowerShell n'est pas dans votre PATH. Sur Windows 10+, ouvrez simplement le menu Démarrer et tapez `PowerShell`. Ou utilisez **Windows Terminal** (recommandé):
+
+```powershell
+# Windows Terminal (l'onglet PowerShell par défaut)
+cd D:\Workspace\monitoringapp-cli
+powershell -ExecutionPolicy Bypass -File .\monitoring-cli.ps1
+```
+
+### `File cannot be loaded because running scripts is disabled on this system`
+
+Votre politique d'exécution PowerShell est stricte. Utilisez la commande avec `-ExecutionPolicy Bypass`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "D:\Workspace\monitoringapp-cli\monitoring-cli.ps1"
+```
+
+Ceci n'affecte que ce script, pas vos paramètres système.
+
+### Caractères corrompus (texte français mal affiché)
+
+Le script PowerShell utilise des caractères ASCII simples pour éviter les problèmes d'encodage. Si vous voyez toujours des caractères brisés, mettez à jour PowerShell:
+
+```powershell
+# Windows 10+, ouvrir le Microsoft Store et rechercher "Windows Terminal"
+# Ou installer via winget:
+winget install Microsoft.PowerShell
+```
+
+### La couleur des messages n'apparaît pas
+
+Assurez-vous que vous utilisez **Windows Terminal** ou une version récente de PowerShell ISE. Les anciennes invites PowerShell legacy supportent mal les couleurs. Windows Terminal est recommandé.
 
 ---
 
