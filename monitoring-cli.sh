@@ -208,10 +208,32 @@ create_incident() {
     read -rp "Titre: " title
     read -rp "Description: " description
     read -rp "ID de l'application: " app_id
-    read -rp "Sévérité (faible/moyen/élevé/critique): " severity
+    
+    # Severity selection menu
+    echo "Sélectionner la sévérité:"
+    echo "  1) LOW (Faible)"
+    #echo "  2) MEDIUM (Moyen)"
+    echo "  2) HIGH (Élevé)"
+    echo "  3) CRITICAL (Critique)"
+    read -rp "Choisir (1-3): " severity_choice
+    
+    local severity
+    case "$severity_choice" in
+        1) severity="LOW" ;;
+        #2) severity="MEDIUM" ;;
+        2) severity="HIGH" ;;
+        3) severity="CRITICAL" ;;
+        *) print_error "Choix invalide"; return 1 ;;
+    esac
+    
     validate_not_empty "$title" "Titre" || return 1
+    validate_not_empty "$description" "Description" || return 1
     validate_not_empty "$app_id" "ID de l'application" || return 1
-    local data="{\"title\":\"$title\",\"description\":\"$description\",\"application_id\":$app_id,\"severity\":\"$severity\"}"
+    # Get current ISO 8601 timestamp
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "")
+    # Fallback for systems without date command
+    [ -z "$timestamp" ] && timestamp=$(TZ=UTC python3 -c "from datetime import datetime; print(datetime.utcnow().isoformat() + 'Z')" 2>/dev/null || echo "")
+    local data="{\"title\":\"$title\",\"description\":\"$description\",\"application_id\":\"$app_id\",\"severity\":\"$severity\",\"status\":\"OPEN\",\"started_at\":\"$timestamp\"}"
     local response
     response=$(api_post "/api/v1/incidents" "$data")
     pretty_json "$response"
@@ -225,9 +247,39 @@ edit_incident() {
     validate_id "$id" || return 1
     read -rp "Titre: " title
     read -rp "Description: " description
-    read -rp "Statut (ouvert/en investigation/résolu): " status
-    read -rp "Sévérité (faible/moyen/élevé/critique): " severity
-    validate_not_empty "$title" "Titre" || return 1
+    
+    # Status selection menu
+    echo "Sélectionner le statut:"
+    echo "  1) OPEN (Ouvert)"
+    echo "  2) IN_PROGRESS (En cours)"
+    echo "  3) RESOLVED (Résolu)"
+    echo "  4) CLOSED (Fermé)"
+    read -rp "Choisir (1-4): " status_choice
+    
+    local status
+    case "$status_choice" in
+        1) status="OPEN" ;;
+        2) status="IN_PROGRESS" ;;
+        3) status="RESOLVED" ;;
+        4) status="CLOSED" ;;
+        *) print_error "Choix invalide"; return 1 ;;
+    esac
+    
+    # Severity selection menu
+    echo "Sélectionner la sévérité:"
+    echo "  1) LOW (Faible)"
+    echo "  2) HIGH (Élevé)"
+    echo "  3) CRITICAL (Critique)"
+    read -rp "Choisir (1-3): " severity_choice
+    
+    local severity
+    case "$severity_choice" in
+        1) severity="LOW" ;;
+        2) severity="HIGH" ;;
+        3) severity="CRITICAL" ;;
+        *) print_error "Choix invalide"; return 1 ;;
+    esac
+
     local data="{\"title\":\"$title\",\"description\":\"$description\",\"status\":\"$status\",\"severity\":\"$severity\"}"
     local response
     response=$(api_put "/api/v1/incidents/$id" "$data")
@@ -254,10 +306,33 @@ resolve_incident() {
     read -rp "ID de l'incident à résoudre: " id
     validate_id "$id" || return 1
     confirm_action "Résoudre l'incident $id?" || return
+
+    # Fetch current incident so we can preserve title/description/severity
+    print_info "Récupération des données de l'incident..."
+    local current
+    current=$(api_get "/api/v1/incidents/$id")
+
+    local title description severity
+    title=$(echo "$current"       | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',d).get('title',''))"       2>/dev/null)
+    description=$(echo "$current" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',d).get('description',''))" 2>/dev/null)
+    severity=$(echo "$current"    | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',d).get('severity','LOW'))"  2>/dev/null)
+
+    if [ -z "$title" ]; then
+        print_error "Impossible de récupérer l'incident. Vérifiez l'ID."
+        press_enter
+        return 1
+    fi
+
+    local data="{\"title\":\"$title\",\"description\":\"$description\",\"status\":\"RESOLVED\",\"severity\":\"$severity\"}"
     local response
-    response=$(api_put "/api/v1/incidents/$id/resolve" "{}")
+    response=$(api_put "/api/v1/incidents/$id" "$data")
     pretty_json "$response"
-    print_success "Demande de résolution envoyée."
+
+    if echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d.get('success') else 1)" 2>/dev/null; then
+        print_success "Incident résolu avec succès."
+    else
+        print_error "La résolution a échoué. Voir la réponse ci-dessus."
+    fi
     press_enter
 }
 

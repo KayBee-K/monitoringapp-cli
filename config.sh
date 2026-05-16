@@ -58,6 +58,16 @@ api_put() {
         -d "$data"
 }
 
+# Helper: make authenticated PATCH request
+api_patch() {
+    local endpoint="$1"
+    local data="$2"
+    curl -s -X PATCH "$BASE_URL$endpoint" \
+        -H "Authorization: Bearer $AUTH_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$data"
+}
+
 # Helper: make authenticated DELETE request
 api_delete() {
     local endpoint="$1"
